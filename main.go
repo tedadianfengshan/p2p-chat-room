@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -33,7 +32,7 @@ func getInitPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateWebsocket(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.RemoteAddr)
+	log.Println(r.RemoteAddr)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -71,7 +70,7 @@ func getMyIPV6() string {
 
 func main() {
 	host := "[" + getMyIPV6() + "]:8002"
-	fmt.Printf("root url: http://%s\n", host)
+	log.Printf("base url: http://%s\n", host)
 
 	mux := http.NewServeMux()
 
