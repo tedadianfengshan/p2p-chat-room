@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -30,8 +33,7 @@ func getInitPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateWebsocket(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Host)
-	fmt.Println(r.Host)
+	fmt.Println(r.RemoteAddr)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -53,7 +55,24 @@ func handleWebsocketConn(ws *websocket.Conn) {
 	}
 }
 
+func getMyIPV6() string {
+	s, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, a := range s {
+		i := regexp.MustCompile(`(\w+:){7}\w+`).FindString(a.String())
+		if strings.Count(i, ":") == 7 {
+			return i
+		}
+	}
+	return ""
+}
+
 func main() {
+	host := "[" + getMyIPV6() + "]:8002"
+	fmt.Printf("root url: http://%s\n", host)
+
 	mux := http.NewServeMux()
 
 	files := http.FileServer(http.Dir("./"))
@@ -62,5 +81,5 @@ func main() {
 	mux.HandleFunc("/", getInitPage)
 	mux.HandleFunc("/ws", updateWebsocket)
 
-	http.ListenAndServe("192.168.108.3:8002", mux)
+	http.ListenAndServe(host, mux)
 }
